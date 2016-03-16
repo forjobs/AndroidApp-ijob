@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="MyMaterialTheme" parent="MyMaterialTheme.Base">
+    </style>
+
+    <style name="MyMaterialTheme.Base" parent="Theme.AppCompat">
+        <item name="windowNoTitle">true</item>
+        <!-- 去掉Actionbar,改用新的Toolbar -->
+        <item name="windowActionBar">false</item>
+        <!-- Toolbar主体颜色 -->
+        <item name="android:colorPrimary">@color/color_primary</item>
+        <!-- Toolbar上方的背景颜色,一般比主体颜色深 -->
+        <item name="android:colorPrimaryDark">@color/color_primary_dark</item>
+        <!-- 其他可以使用的属性参数:colorAccent, colorControlNormal,
+        colorControlActivated, colorControlHighlight, colorSwitchThumbNormal -->
+    </style>
+</resources>
