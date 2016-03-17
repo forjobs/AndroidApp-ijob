@@ -1,13 +1,12 @@
 package cn.edu.sjtu.ijob.ijob;
 
-import android.graphics.Color;
-import android.graphics.drawable.Drawable;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.widget.ListView;
+import android.view.View;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
 import com.mikepenz.materialdrawer.Drawer;
@@ -16,26 +15,13 @@ import com.mikepenz.materialdrawer.model.DividerDrawerItem;
 import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
 import com.mikepenz.materialdrawer.model.ProfileDrawerItem;
 import com.mikepenz.materialdrawer.model.SecondaryDrawerItem;
-import org.jsoup.Connection;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
-import rx.Observable;
-import rx.Observer;
-import rx.Subscriber;
-import rx.android.schedulers.AndroidSchedulers;
-import rx.schedulers.Schedulers;
+import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     private Toolbar mToolbar;
     private ActionBar mActionbar;
-    private ListView mSeminarList;
-    private SeminarListAdapter mSeminarListAdapter;
-    private ArrayList<SeminarListItem> mSeminarData;
 
 
     @Override
@@ -44,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initToolbar();
         initSlideMenu();
-        initListView();
+        setFragmentToSeminar();
     }
 
 
@@ -57,6 +43,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void initSlideMenu() {
+        // 为SlideMenu创建Header
         AccountHeader headerResult = new AccountHeaderBuilder()
                 .withActivity(this)
                 .withHeaderBackground(R.drawable.header)
@@ -64,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
                         new ProfileDrawerItem().withName("点击头像登陆").withIcon(R.drawable.face)
                 )
                 .build();
-
+        // 为SlideMenu创建所有的item
         PrimaryDrawerItem priItemHome = new PrimaryDrawerItem()
                 .withName("首页").withIcon(R.mipmap.home);
         SecondaryDrawerItem subItemSeminar = new SecondaryDrawerItem()
@@ -73,9 +60,7 @@ public class MainActivity extends AppCompatActivity {
                 .withName("实习信息").withIcon(R.mipmap.intern);
         SecondaryDrawerItem subItemJob = new SecondaryDrawerItem()
                 .withName("工作信息").withIcon(R.mipmap.job);
-
-
-
+        // 创建SlideMenu
         Drawer result = new DrawerBuilder()
                 .withActivity(this)
                 .withToolbar(mToolbar)
@@ -83,65 +68,49 @@ public class MainActivity extends AppCompatActivity {
                         priItemHome, new DividerDrawerItem(),
                         subItemSeminar, subItemIntern, subItemJob
                 ).withAccountHeader(headerResult)
+                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
+                    @Override
+                    public boolean onItemClick(View view, int i, IDrawerItem iDrawerItem) {
+                        switch(i) {
+                            case 1 :
+                                setFragmentToSeminar();
+                                break;
+                            case 3:
+                                setFragmentToSeminar();
+                                break;
+                            case 4:
+                                setFragmentToIntern();
+                                break;
+                            case 5:
+                                setFragmentToJob();
+                                break;
+                        }
+                        return false;
+                    }
+                })
                 .build();
-
-
     }
 
-    private void initListView() {
-        mSeminarList = (ListView) findViewById(R.id.listview_seminar);
-        mSeminarData = new ArrayList<SeminarListItem>();
-        getListData();
+
+    private void setFragmentToSeminar() {
+        SeminarFragment seminarFragment = new SeminarFragment();
+        FragmentManager manager = getFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.replace(R.id.fragment_container, seminarFragment).commit();
     }
 
-    private void getListData() {
-        Observable.create(new Observable.OnSubscribe<Elements>() {
+    private void setFragmentToIntern() {
+        InternFragment internFragment = new InternFragment();
+        FragmentManager manager = getFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.replace(R.id.fragment_container, internFragment).commit();
+    }
 
-            public void call(Subscriber<? super Elements> subscriber) {
-                try {
-                    String url = "http://xjh.haitou.cc/sh/uni-132";
-                    Connection conn = Jsoup.connect(url);
-                    conn.header("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:32.0) Gecko/20100101 Firefox/32.0");
-                    Document doc = conn.get();
-                    Elements elements = doc.select("tbody tr");
-                    subscriber.onNext(elements);
-                    subscriber.onCompleted();
-                } catch (Exception e) {
-                    Log.d("Exception", e.toString());
-                }
-            }
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(new Observer<Elements>() {
-            @Override
-            public void onCompleted() {
-                if (mSeminarListAdapter == null) {
-                    mSeminarListAdapter = new SeminarListAdapter(MainActivity.this, R.layout.list_item, mSeminarData);
-                }
-                mSeminarList.setAdapter(mSeminarListAdapter);
-                mSeminarListAdapter.notifyDataSetChanged();
-            }
+    private void setFragmentToJob() {
+        JobFragment jobFragment = new JobFragment();
+        FragmentManager manager = getFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.replace(R.id.fragment_container, jobFragment).commit();
 
-            @Override
-            public void onError(Throwable e) {
-            }
-
-            @Override
-            public void onNext(Elements elements) {
-                for (Element element : elements) {
-                    String company = element.getElementsByClass("company").text();
-                    String link = element.select("a").attr("abs:href").toString();
-                    String time = element.getElementsByClass("hold-ymd").text();
-                    String address = element.getElementsByClass("text-ellipsis").text();
-
-                    SeminarListItem item = new SeminarListItem();
-                    item.setCompanyName(company);
-                    item.setTime("举办时间: " + time);
-                    item.setPlace("举办地点: " + address);
-                    item.setInfoUrl(link);
-                    mSeminarData.add(item);
-                }
-            }
-        });
     }
 }
