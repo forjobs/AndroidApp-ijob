@@ -1,11 +1,17 @@
 package cn.edu.sjtu.ijob.ijob;
 
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.app.ListFragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ListView;
+import android.widget.Toast;
 import org.jsoup.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -31,20 +37,25 @@ public class SeminarFragment extends ListFragment{
     @Override
     public void onActivityCreated(Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-
         mListData = new ArrayList<SeminarListItem>();
+        mListData.add(new SeminarListItem());  // 由于list首行显示图片,人工加入一个空的数据项
         getListData();
-
-
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_seminar, container, false);
-
         return view;
     }
+
+    @Override
+    public void onListItemClick(ListView l, View v, int position, long id) {
+        super.onListItemClick(l, v, position, id);
+        setFragmentToWebview(mListData.get(position).getInfoUrl());
+    }
+
+
 
     private void getListData() {
         Observable.create(new Observable.OnSubscribe<Elements>() {
@@ -93,4 +104,14 @@ public class SeminarFragment extends ListFragment{
                     }
                 });
     }
+
+    private void setFragmentToWebview(String url) {
+        WebviewFragment webviewFragment = WebviewFragment.newInstance(url);
+        FragmentManager manager = getFragmentManager();
+        FragmentTransaction transaction = manager.beginTransaction();
+        transaction.addToBackStack(null);
+        transaction.replace(R.id.fragment_container, webviewFragment);
+        transaction.commit();
+    }
+
 }

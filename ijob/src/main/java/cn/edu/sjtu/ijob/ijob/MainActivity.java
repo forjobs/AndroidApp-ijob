@@ -1,11 +1,13 @@
 package cn.edu.sjtu.ijob.ijob;
 
+import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.View;
 import com.mikepenz.materialdrawer.AccountHeader;
 import com.mikepenz.materialdrawer.AccountHeaderBuilder;
@@ -22,6 +24,10 @@ public class MainActivity extends AppCompatActivity {
 
     private Toolbar mToolbar;
     private ActionBar mActionbar;
+    private SeminarFragment mSeminarFragment;
+    private InternFragment mInternFragment;
+    private JobFragment mJobFragment;
+    private FragmentTransaction mFragmentTransaction;
 
 
     @Override
@@ -30,9 +36,19 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         initToolbar();
         initSlideMenu();
+        initFragments();
         setFragmentToSeminar();
     }
 
+    @Override
+    public void onBackPressed() {
+        Fragment fragment = getFragmentManager().findFragmentById(R.id.fragment_container);
+        if (fragment instanceof WebviewFragment) {
+            getFragmentManager().popBackStack();
+        } else {
+            super.onBackPressed();
+        }
+    }
 
     private void initToolbar() {
         mToolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -91,26 +107,28 @@ public class MainActivity extends AppCompatActivity {
                 .build();
     }
 
+    private void initFragments() {
+        mSeminarFragment = new SeminarFragment();
+        mInternFragment = new InternFragment();
+        mJobFragment = new JobFragment();
+    }
+
 
     private void setFragmentToSeminar() {
-        SeminarFragment seminarFragment = new SeminarFragment();
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
-        transaction.replace(R.id.fragment_container, seminarFragment).commit();
+        transaction.replace(R.id.fragment_container, mSeminarFragment).commit();
     }
 
     private void setFragmentToIntern() {
-        InternFragment internFragment = new InternFragment();
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
-        transaction.replace(R.id.fragment_container, internFragment).commit();
+        transaction.replace(R.id.fragment_container, mInternFragment).commit();
     }
 
     private void setFragmentToJob() {
-        JobFragment jobFragment = new JobFragment();
         FragmentManager manager = getFragmentManager();
         FragmentTransaction transaction = manager.beginTransaction();
-        transaction.replace(R.id.fragment_container, jobFragment).commit();
-
+        transaction.replace(R.id.fragment_container, mJobFragment).commit();
     }
 }
